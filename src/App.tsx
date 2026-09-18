@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   ArrowRight, Bookmark, Building2, Camera, Check, ChevronDown, Copy, ExternalLink, Flame, Github,
-  Grid2X2, Heart, Images, Library, Menu, MessageSquareText, QrCode, Search, SlidersHorizontal, Sparkles, Users, WandSparkles, X,
+  Grid2X2, Heart, Images, Library, Lock, Menu, MessageSquareText, QrCode, Search, SlidersHorizontal, Sparkles, Users, WandSparkles, X,
 } from 'lucide-react'
 import rawPrompts from './data/prompts.json'
 import { additionalPrompts } from './data/additional-prompts'
 import { buildQuickConfig, getQuickFilters } from './data/quick-filters'
 import ImageAnalyzer from './ImageAnalyzer'
 import RenderStudio from './RenderStudio'
+import LoginScreen, { isAuthenticated, logout } from './LoginScreen'
 import type { PromptItem } from './types'
 
 const prompts = [...rawPrompts as PromptItem[], ...additionalPrompts]
@@ -98,9 +99,10 @@ type HeaderProps = {
   onMenu: () => void
   activeView: AppView
   onNavigate: (view: AppView) => void
+  onLogout: () => void
 }
 
-function Header({ query, setQuery, favoriteCount, showFavorites, setShowFavorites, onMenu, activeView, onNavigate }: HeaderProps) {
+function Header({ query, setQuery, favoriteCount, showFavorites, setShowFavorites, onMenu, activeView, onNavigate, onLogout }: HeaderProps) {
   return (
     <header className="site-header">
       <button className="icon-button mobile-menu" onClick={onMenu} aria-label="Mở bộ lọc"><Menu size={20} /></button>
@@ -124,6 +126,10 @@ function Header({ query, setQuery, favoriteCount, showFavorites, setShowFavorite
         <button className={`favorites-button ${showFavorites ? 'active' : ''}`} onClick={() => { setShowFavorites(!showFavorites); onNavigate('library') }}>
           <Heart size={17} fill={showFavorites ? 'currentColor' : 'none'} />
           <span>Đã lưu</span><b>{favoriteCount}</b>
+        </button>
+        <button className="auth-logout-btn" onClick={onLogout} title="Khóa không gian làm việc Studio" aria-label="Khóa Studio">
+          <Lock size={14} />
+          <span>Khóa</span>
         </button>
       </nav>
     </header>
@@ -335,6 +341,7 @@ function PromptDialog({ item, favorite, onFavorite, onClose, onCopy }: PromptDia
 }
 
 function App() {
+  const [isAuthed, setIsAuthed] = useState(() => isAuthenticated())
   const [welcomeOpen, setWelcomeOpen] = useState(() => sessionStorage.getItem('ai-architecture-welcomed') !== '1')
   const [query, setQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('Tất cả')
@@ -408,11 +415,19 @@ function App() {
     sessionStorage.setItem('ai-architecture-welcomed', '1')
     setWelcomeOpen(false)
   }
+  const handleLogout = () => {
+    logout()
+    setIsAuthed(false)
+  }
+
+  if (!isAuthed) {
+    return <LoginScreen onLoginSuccess={() => setIsAuthed(true)} />
+  }
 
   return (
     <div className="app-shell">
       {welcomeOpen && <WelcomeScreen onClose={closeWelcome} />}
-      <Header query={query} setQuery={(value) => { setQuery(value); if (value) setActiveView('library') }} favoriteCount={favorites.size} showFavorites={showFavorites} setShowFavorites={setShowFavorites} onMenu={() => { setActiveView('library'); setSidebarOpen(true) }} activeView={activeView} onNavigate={navigate} />
+      <Header query={query} setQuery={(value) => { setQuery(value); if (value) setActiveView('library') }} favoriteCount={favorites.size} showFavorites={showFavorites} setShowFavorites={setShowFavorites} onMenu={() => { setActiveView('library'); setSidebarOpen(true) }} activeView={activeView} onNavigate={navigate} onLogout={handleLogout} />
       {activeView === 'library' && <Sidebar categories={categories} selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} open={sidebarOpen} onClose={() => setSidebarOpen(false)} />}
       <main className={`main-content ${activeView !== 'library' ? 'focused-layout' : ''}`}>
         {activeView === 'home' && <>
@@ -456,7 +471,12 @@ function App() {
 
       <footer className={activeView !== 'library' ? 'focused-layout' : ''}>
         <div className="footer-brand"><BrandMark /><span><strong>AI Architecture Studio</strong><small>Made for Vietnamese creators.</small></span></div>
-        <p className="footer-links"><a href="https://phudong-appstore.vercel.app/" target="_blank" rel="noreferrer"><Library size={13} /> Thư viện AI</a><a href="https://zalo.me/g/kodwgn037" target="_blank" rel="noreferrer"><Users size={13} /> Nhóm Zalo</a><button onClick={() => setWelcomeOpen(true)}><Sparkles size={13} /> Giới thiệu</button></p>
+        <p className="footer-links">
+          <a href="https://phudong-appstore.vercel.app/" target="_blank" rel="noreferrer"><Library size={13} /> Thư viện AI</a>
+          <a href="https://zalo.me/g/kodwgn037" target="_blank" rel="noreferrer"><Users size={13} /> Nhóm Zalo</a>
+          <button onClick={() => setWelcomeOpen(true)}><Sparkles size={13} /> Giới thiệu</button>
+          <button onClick={handleLogout}><Lock size={13} /> Khóa Studio</button>
+        </p>
         <span>© 2026 AI Architecture Studio</span>
       </footer>
 
