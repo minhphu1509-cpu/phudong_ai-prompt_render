@@ -120,7 +120,18 @@ export const SOURCE_TYPES = [standard,...['Phác thảo tay','Line drawing','Scr
 export const PRESERVATION = [standard,{value:'strict',label:'Khóa hình khối tuyệt đối'},{value:'high',label:'Giữ hình khối cao'},{value:'balanced',label:'Cân bằng'},{value:'creative',label:'Cho phép bổ sung chi tiết'}]
 export const PEOPLE = [standard,{value:'none',label:'Không người'},{value:'few',label:'Ít người'},{value:'natural',label:'Hoạt động tự nhiên'},{value:'busy',label:'Đông người có kiểm soát'}]
 export const VEGETATION = [standard,{value:'minimal',label:'Cây xanh tối giản'},{value:'native',label:'Cây bản địa'},{value:'lush',label:'Xanh tốt nhiệt đới'},{value:'mature',label:'Cây trưởng thành'}]
-export const ASPECTS = [{value:'1536x1024',label:'Ngang 3:2 — tiêu chuẩn'},{value:'1024x1024',label:'Vuông 1:1'},{value:'1024x1536',label:'Dọc 2:3'}]
+export const ASPECTS = [
+  { value: '1536x1024', label: 'Ngang 3:2 — Chuẩn kiến trúc (DSLR)' },
+  { value: '1792x1008', label: 'Ngang 16:9 — Màn hình rộng / Presentation / TV' },
+  { value: '1408x1056', label: 'Ngang 4:3 — Catalog / Thuyết trình dự án' },
+  { value: '1024x1024', label: 'Vuông 1:1 — Portfolio / Mạng xã hội' },
+  { value: '1024x1536', label: 'Dọc 2:3 — Poster kiến trúc / Chụp đứng' },
+  { value: '1008x1792', label: 'Dọc 9:16 — Story / TikTok / Smartphone' },
+  { value: '1056x1408', label: 'Dọc 3:4 — Bìa hồ sơ / Khung tranh đứng' },
+  { value: '1024x1280', label: 'Dọc 4:5 — Chân dung kiến trúc / Instagram' },
+  { value: '1920x822',  label: 'Ngang 21:9 — Panorama / Quy hoạch toàn cảnh' },
+  { value: '1280x1024', label: 'Ngang 5:4 — Tranh in mỹ thuật khổ lớn' },
+]
 export const QUALITY = [{value:'medium',label:'Tiêu chuẩn — Medium'},{value:'high',label:'Cao — High'},{value:'low',label:'Nhanh — Low'}]
 
 export type RenderSelection = { discipline: Discipline; style: string; projectType: string; sourceType: string; time: string; weather: string; lighting: string; context: string; camera: string; preservation: string; people: string; vegetation: string; aspect: string; quality: string; notes: string }

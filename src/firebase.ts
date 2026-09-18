@@ -77,10 +77,32 @@ function splitImage(dataUrl: string) {
   return { mime: match[1], base64: match[2] }
 }
 
-const mapAspect = (aspect?: string) => {
-  if (aspect === '1024x1024') return '1:1'
-  if (aspect === '1024x1536') return '2:3'
-  return '3:2'
+const mapAspect = (aspect?: string): string => {
+  switch (aspect) {
+    case '1536x1024': return '3:2'
+    case '1792x1008': return '16:9'
+    case '1408x1056': return '4:3'
+    case '1024x1024': return '1:1'
+    case '1024x1536': return '2:3'
+    case '1008x1792': return '9:16'
+    case '1056x1408': return '3:4'
+    case '1024x1280': return '4:5'
+    case '1920x822':  return '21:9'
+    case '1280x1024': return '5:4'
+    case '3:2':
+    case '16:9':
+    case '4:3':
+    case '1:1':
+    case '2:3':
+    case '9:16':
+    case '3:4':
+    case '4:5':
+    case '21:9':
+    case '5:4':
+      return aspect
+    default:
+      return '3:2'
+  }
 }
 
 /**

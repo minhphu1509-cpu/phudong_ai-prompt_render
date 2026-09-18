@@ -6,18 +6,35 @@ type Res={status:(code:number)=>Res;json:(body:unknown)=>void;setHeader:(name:st
 
 const DATA_URL=/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/
 const MODELS=/^[a-zA-Z0-9._:/-]{1,120}$/
-const SIZES=new Set(['1024x1024','1536x1024','1024x1536'])
+const SIZES=new Set([
+  '1536x1024',
+  '1792x1008',
+  '1408x1056',
+  '1024x1024',
+  '1024x1536',
+  '1008x1792',
+  '1056x1408',
+  '1024x1280',
+  '1920x822',
+  '1280x1024',
+])
 const QUALITIES=new Set(['low','medium','high'])
 
 function splitImage(value:string){const match=value.match(DATA_URL);if(!match)throw new Error('invalid_image');return{mime:match[1],base64:match[2]}}
 async function timedFetch(url:string,init:RequestInit){const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),110_000);try{return await fetch(url,{...init,signal:controller.signal})}finally{clearTimeout(timeout)}}
+
+function mapOpenAISize(size: string): string {
+  if (size === '1024x1024') return '1024x1024'
+  if (['1024x1536', '1008x1792', '1056x1408', '1024x1280'].includes(size)) return '1024x1536'
+  return '1536x1024'
+}
 
 async function openai(item:Provider,imageData:string,prompt:string,size:string,quality:string){
   const {mime,base64}=splitImage(imageData)
   const bytes=Uint8Array.from(Buffer.from(base64,'base64'))
   const form=new FormData()
   form.append('model',item.model);form.append('prompt',prompt);form.append('image[]',new Blob([bytes],{type:mime}),'source.webp')
-  form.append('size',size);form.append('quality',quality);form.append('output_format','webp');form.append('output_compression','82');form.append('moderation','auto')
+  form.append('size',mapOpenAISize(size));form.append('quality',quality);form.append('output_format','webp');form.append('output_compression','82');form.append('moderation','auto')
   const response=await timedFetch('https://api.openai.com/v1/images/edits',{method:'POST',headers:{Authorization:`Bearer ${item.apiKey}`},body:form})
   if(!response.ok)throw new Error(`provider_${response.status}`)
   const payload=await response.json() as {data?:Array<{b64_json?:string}>;output_format?:string}
@@ -25,7 +42,21 @@ async function openai(item:Provider,imageData:string,prompt:string,size:string,q
   return{imageData:`data:image/${payload.output_format||'webp'};base64,${output}`,model:item.model}
 }
 
-const ratio=(size:string)=>size==='1024x1024'?'1:1':size==='1024x1536'?'2:3':'3:2'
+const ratio=(size:string):string=>{
+  switch(size){
+    case '1536x1024':return '3:2'
+    case '1792x1008':return '16:9'
+    case '1408x1056':return '4:3'
+    case '1024x1024':return '1:1'
+    case '1024x1536':return '2:3'
+    case '1008x1792':return '9:16'
+    case '1056x1408':return '3:4'
+    case '1024x1280':return '4:5'
+    case '1920x822': return '21:9'
+    case '1280x1024':return '5:4'
+    default:return '3:2'
+  }
+}
 async function gemini(item:Provider,imageData:string,prompt:string,size:string,quality:string){
   const {mime,base64}=splitImage(imageData)
   const response=await timedFetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(item.model)}:generateContent`,{
