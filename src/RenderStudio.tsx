@@ -58,7 +58,7 @@ export default function RenderStudio({onCopy}:{onCopy:(text:string)=>void}){
   const [strategy,setStrategy]=useState<'auto'|ProviderId>('auto')
   const [usageMode,setUsageMode]=useState<UsageMode>('firebase')
   const [firebaseModel,setFirebaseModel]=useState<string>('gemini-2.5-flash-image')
-  const [firebaseFallbackKey,setFirebaseFallbackKey]=useState<string>(()=>sessionStorage.getItem('phudong-gemini-fallback')||'')
+  const [firebaseFallbackKey,setFirebaseFallbackKey]=useState<string>(()=>typeof window !== 'undefined' ? (sessionStorage.getItem('phudong-gemini-fallback') || localStorage.getItem('phudong-gemini-fallback') || '') : '')
   const [apiOpen,setApiOpen]=useState(false)
   const [preview,setPreview]=useState('')
   const [imageData,setImageData]=useState('')
@@ -193,15 +193,22 @@ export default function RenderStudio({onCopy}:{onCopy:(text:string)=>void}){
             </div>
             <div className="firebase-box-field">
               <label>
-                <span>Gemini API Key (Tùy chọn nếu Firebase cần App Check):</span>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'3px'}}>
+                  <span>Gemini API Key (Render ngay lập tức):</span>
+                  <a href="https://aistudio.google.com/apikey" target="_blank" rel="noreferrer" style={{color:'#ffa940',fontSize:'8.5px',textDecoration:'underline'}}>
+                    Lấy key miễn phí (Google AI Studio) ↗
+                  </a>
+                </div>
                 <input
                   type="password"
                   autoComplete="off"
-                  placeholder="AIza... (Để trống để dùng key mặc định từ Firebase)"
+                  placeholder="AIzaSy... (Dán key vào đây để render ngay)"
                   value={firebaseFallbackKey}
                   onChange={e=>{
-                    setFirebaseFallbackKey(e.target.value)
-                    sessionStorage.setItem('phudong-gemini-fallback', e.target.value)
+                    const val = e.target.value
+                    setFirebaseFallbackKey(val)
+                    sessionStorage.setItem('phudong-gemini-fallback', val)
+                    localStorage.setItem('phudong-gemini-fallback', val)
                   }}
                 />
               </label>

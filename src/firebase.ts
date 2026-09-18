@@ -122,8 +122,11 @@ export async function generateRenderWithFirebaseAI(input: RenderInput): Promise<
     const isAppCheckError = errMessage.includes('App Check') || errMessage.includes('401') || errMessage.includes('UNAUTHENTICATED')
     const isServiceBlocked = errMessage.includes('API_KEY_SERVICE_BLOCKED') || errMessage.includes('PERMISSION_DENIED')
 
-    // 2. Thử gọi qua API backend hoặc direct Gemini nếu có key
-    const activeKey = customApiKey?.trim() || (isServiceBlocked ? '' : firebaseConfig.apiKey)
+    // 2. Thử gọi qua API trực tiếp nếu có key người dùng cung cấp hoặc lưu trong bộ nhớ
+    const storedFallback = typeof window !== 'undefined'
+      ? (sessionStorage.getItem('phudong-gemini-fallback') || localStorage.getItem('phudong-gemini-fallback') || '')
+      : ''
+    const activeKey = customApiKey?.trim() || storedFallback || (isServiceBlocked ? '' : firebaseConfig.apiKey)
 
     if (activeKey) {
       try {
